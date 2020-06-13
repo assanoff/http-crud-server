@@ -2,7 +2,6 @@ package apiserver
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"strconv"
 	"time"
@@ -40,14 +39,13 @@ func (s *server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 func (s *server) configureRouter() {
 
-	fmt.Println(s.endpoint + "/users")
-
 	s.router.Use(s.logRequest)
 	s.router.HandleFunc("/", HandlerHello)
 	s.router.HandleFunc(s.endpoint+"/users", s.handleUsersCreate()).Methods("POST")
 	s.router.HandleFunc(s.endpoint+"/users/{id:[0-9]+}", s.handleUsersByID()).Methods("GET")
 	s.router.HandleFunc(s.endpoint+"/users/", s.handleUsersByField()).Queries("field", "{field}", "val", "{value}").Methods("GET")
 	s.router.HandleFunc(s.endpoint+"/users", s.handleUsers()).Methods("GET")
+	s.router.HandleFunc(s.endpoint+"/users/{id:[0-9]+}", s.handleUpdateUsersByID()).Methods("PUT")
 
 }
 
@@ -118,18 +116,57 @@ func (s *server) handleUsersByID() http.HandlerFunc {
 
 		vars := mux.Vars(r)
 		id, err := strconv.Atoi(vars["id"])
-		if err != nil { // bad request
-			w.WriteHeader(400)
+		if err != nil {
+			s.error(w, r, http.StatusBadRequest, err)
 			return
 		}
 
 		u, err := s.store.User().GetUserByID(id)
+
+		if err != nil {
+			s.error(w, r, http.StatusNotFound, err)
+			return
+		}
+
+		s.respond(w, r, http.StatusOK, u)
+	}
+}
+
+func (s *server) handleUpdateUsersByID() http.HandlerFunc {
+
+	type request struct {
+		Name  string `json:"name"`
+		Email string `json:"email"`
+	}
+
+	return func(w http.ResponseWriter, r *http.Request) {
+
+		vars := mux.Vars(r)
+		id, err := strconv.Atoi(vars["id"])
+		if err != nil {
+			s.error(w, r, http.StatusBadRequest, err)
+			return
+		}
+
+		req := &request{}
+		if err := json.NewDecoder(r.Body).Decode(req); err != nil {
+			s.error(w, r, http.StatusBadRequest, err)
+			return
+		}
+
+		u := &model.User{
+			Name:  req.Name,
+			Email: req.Email,
+		}
+
+		u, err = s.store.User().UpdateUserByID(id, u)
+
 		if err != nil {
 			s.error(w, r, http.StatusUnprocessableEntity, err)
 			return
 		}
 
-		s.respond(w, r, http.StatusCreated, u)
+		s.respond(w, r, http.StatusOK, u)
 	}
 }
 func (s *server) handleUsersByField() http.HandlerFunc {

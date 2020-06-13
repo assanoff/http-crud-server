@@ -3,7 +3,6 @@ package apiserver
 import (
 	"bytes"
 	"context"
-	"fmt"
 	"io/ioutil"
 	"net/http"
 	"text/template"
@@ -59,7 +58,6 @@ func MigrateDB(conn *pgx.Conn, config *Config) {
 		log.Fatalf("Unable to templ a migrate: %v", err)
 	}
 	migrateScript := templateScript.String()
-	fmt.Println("migrate", migrateScript)
 
 	_, err = conn.Exec(context.Background(), migrateScript)
 	if err != nil {

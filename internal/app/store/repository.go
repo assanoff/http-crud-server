@@ -8,4 +8,5 @@ type UserRepository interface {
 	GetUserByID(int) (*model.User, error)
 	GetUserByField(string, string) (*model.User, error)
 	GetUsers() ([]*model.User, error)
+	UpdateUserByID(int, *model.User) (*model.User, error)
 }

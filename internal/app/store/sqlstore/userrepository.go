@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/assanoff/http-crud-server/internal/app/model"
+	"github.com/assanoff/http-crud-server/internal/app/store"
 	"github.com/jackc/pgx"
 	log "github.com/sirupsen/logrus"
 )
@@ -24,12 +25,6 @@ func (r *UserRepository) Create(u *model.User) error {
 		return err
 	}
 	defer conn.Release()
-
-	// return r.store.db.QueryRow(
-	// 	"INSERT INTO users (name, email VALUES ($1, $2) RETURNING id",
-	// 	u.Name,
-	// 	u.Email,
-	// ).Scan(&u.ID)
 
 	row := conn.QueryRow(context.Background(),
 		"INSERT INTO test.users (name, email) VALUES ($1, $2) RETURNING id",
@@ -62,8 +57,9 @@ func (r *UserRepository) GetUserByID(id int) (*model.User, error) {
 
 	u := &model.User{}
 	err = row.Scan(&u.ID, &u.Name, &u.Email)
+
 	if err == pgx.ErrNoRows {
-		return nil, err
+		return nil, store.ErrRecordNotFound
 	}
 
 	return u, nil
@@ -89,7 +85,7 @@ func (r *UserRepository) GetUserByField(fieldName string, value string) (*model.
 	u := &model.User{}
 	err = row.Scan(&u.ID, &u.Name, &u.Email)
 	if err == pgx.ErrNoRows {
-		return nil, err
+		return nil, store.ErrRecordNotFound
 	}
 
 	return u, nil
@@ -126,4 +122,27 @@ func (r *UserRepository) GetUsers() ([]*model.User, error) {
 	}
 
 	return users, nil
+}
+
+// UpdateUserByID ...
+func (r *UserRepository) UpdateUserByID(id int, u *model.User) (*model.User, error) {
+
+	pool := r.store.db
+
+	conn, err := pool.Acquire(context.Background())
+	if err != nil {
+		log.Errorf("Unable to acquire a database connection: %v\n", err)
+		return nil, err
+	}
+	defer conn.Release()
+	query := fmt.Sprintf("UPDATE test.users SET name = $2, email = $3 WHERE id = $1")
+
+	ct, err := conn.Exec(context.Background(), query,
+		id, u.Name, u.Email)
+
+	if ct.RowsAffected() == 0 {
+		return nil, nil
+	}
+
+	return u, nil
 }

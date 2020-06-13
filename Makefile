@@ -37,6 +37,6 @@ rundb:
 # чтение: curl -vvv localhost:3220/api/v1/users/1
 # чтение: curl -vvv http://localhost:3220/api/v1/users/?field=email&val=Lisa@google.com
 
-# обновление: curl -vvv -XPUT -H 'Content-Type: application/json'-d '{"name":"Bob","email":"456@google.com"}' localhost:3220/api/v1/users/1
+# обновление: curl -vvv -XPUT -H 'Content-Type: application/json' -d '{"name":"Bob","email":"456@google.com"}' localhost:3220/api/v1/users/3
 
 # удаление: curl -vvv -XDELETE  localhost:3220/api/v1/records/1
