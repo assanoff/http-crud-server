@@ -1,0 +1,9 @@
+.DS_Store
+/.vscode/
+/database_postgers/
+
+# Binaries for programs and plugins
+*.exe
+*.exe~
+*.so
+/bin/
