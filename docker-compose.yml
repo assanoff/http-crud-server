@@ -43,4 +43,3 @@ services:
 # Networks to be created to facilitate communication between containers
 networks:
   crud-server:
-    driver: bridge

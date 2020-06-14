@@ -37,7 +37,7 @@ func Start(config *Config) error {
 	if err != nil {
 		return err
 	}
-	store := sqlstore.New(pool)
+	store := sqlstore.New(pool, config.Schema)
 
 	srv := newServer(store, config.Endpoint)
 

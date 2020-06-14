@@ -26,8 +26,10 @@ func (r *UserRepository) Create(u *model.User) error {
 	}
 	defer conn.Release()
 
+	query := fmt.Sprintf("INSERT INTO %s.users (name, email) VALUES ($1, $2) RETURNING id", r.store.schema)
+
 	row := conn.QueryRow(context.Background(),
-		"INSERT INTO test.users (name, email) VALUES ($1, $2) RETURNING id",
+		query,
 		u.Name, u.Email)
 	var id uint64
 	err = row.Scan(&id)
@@ -50,9 +52,10 @@ func (r *UserRepository) GetUserByID(id int) (*model.User, error) {
 		return nil, err
 	}
 	defer conn.Release()
+	query := fmt.Sprintf("SELECT id, name, email FROM %s.users WHERE id = $1", r.store.schema)
 
 	row := conn.QueryRow(context.Background(),
-		"SELECT id, name, email FROM test.users WHERE id = $1",
+		query,
 		id)
 
 	u := &model.User{}
@@ -76,7 +79,7 @@ func (r *UserRepository) GetUserByField(fieldName string, value string) (*model.
 		return nil, err
 	}
 	defer conn.Release()
-	query := fmt.Sprintf("SELECT id, name, email FROM test.users WHERE %s = $1", fieldName)
+	query := fmt.Sprintf("SELECT id, name, email FROM %s.users WHERE %s = $1", r.store.schema, fieldName)
 
 	row := conn.QueryRow(context.Background(),
 		query,
@@ -135,7 +138,7 @@ func (r *UserRepository) UpdateUserByID(id int, u *model.User) (*model.User, err
 		return nil, err
 	}
 	defer conn.Release()
-	query := fmt.Sprintf("UPDATE test.users SET name = $2, email = $3 WHERE id = $1")
+	query := fmt.Sprintf("UPDATE %s.users SET name = $2, email = $3 WHERE id = $1", r.store.schema)
 
 	ct, err := conn.Exec(context.Background(), query,
 		id, u.Name, u.Email)
@@ -158,7 +161,7 @@ func (r *UserRepository) DeleteUserByID(id int) error {
 		return err
 	}
 	defer conn.Release()
-	query := fmt.Sprintf("DELETE FROM test.users WHERE id = $1")
+	query := fmt.Sprintf("DELETE FROM %s.users WHERE id = $1", r.store.schema)
 
 	ct, err := conn.Exec(context.Background(), query,
 		id)
