@@ -9,4 +9,5 @@ type UserRepository interface {
 	GetUserByField(string, string) (*model.User, error)
 	GetUsers() ([]*model.User, error)
 	UpdateUserByID(int, *model.User) (*model.User, error)
+	DeleteUserByID(id int) error
 }

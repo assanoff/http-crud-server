@@ -1,5 +1,5 @@
 #docker build -t crud-server .
-#docker run --rm -d -t -p 3220:8080 --name crud-server crud-server .
+#docker run -p 3220:8080 --name crud-server --rm -d -t crud-server
 
 # Initial stage: download modules
 FROM golang:1.13 as modules
@@ -10,12 +10,13 @@ RUN cd /m && go mod download
 FROM golang:1.13 AS builder
 COPY --from=modules /go/pkg /go/pkg
 RUN mkdir /app
-ADD . /app
+COPY . /app
 WORKDIR /app
 # We want to build our application's binary executable
 RUN CGO_ENABLED=0 GOOS=linux make build
 
 # Final stage: Run the binary
-FROM alpine:latest AS production
+FROM scratch 
 COPY --from=builder /app/bin/ .
+EXPOSE 8080
 CMD ["./apiserver"]

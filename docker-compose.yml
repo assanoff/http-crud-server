@@ -1,37 +1,46 @@
-version: '3'
+version: "3.7"
 services:
   app:
+    build: .
     container_name: crud-server
     environment:
       - PORT=3220
       - ENDPOINT=api/v1/
       - DB_SCHEMA=test
-    build: .
-    ports: 
-      - 3220:8080 # Forward the exposed port 3220docker on the container to port 8080 on the host machine
-    restart: on-failure
-    depends_on:
-      - postgres # This service depends on postgres. Start that first.
-    networks:
-      - crud-server
-
-  postgres:
-    image: postgres:11
-    container_name: crud_db
-    environment:
-      - DB_HOST=localhost
-      - DB_USER=localhost
+      - DB_HOST=db
+      - DB_USER=postgres
       - DB_PASS=password
       - DB_NAME=crud-db
       - PG_MAXCONN=10
-    ports:
-      - '5432:5432'
+    ports: 
+      - "3220:8080" # Forward the exposed port 3220 docker on the container to port 8080 on the host machine
+    restart: on-failure
     volumes:
-      - ./database_postgers:/var/lib/postgresql/data
+      - ./migrations/:/migrations/
+    depends_on:
+      - db # This service depends on postgres. Start that first.
     networks:
       - crud-server
 
+  db:
+    image: postgres:11
+    container_name: postgresql
+    environment:
+      - POSTGRES_DB=crud-db
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_USER=postgres
+      - DATABASE_HOST=localhost
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5  
+    ports:
+      - "5432:5432"
+    networks:
+      - crud-server
 
 # Networks to be created to facilitate communication between containers
 networks:
   crud-server:
+    driver: bridge

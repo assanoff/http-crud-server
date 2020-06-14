@@ -46,6 +46,7 @@ func (s *server) configureRouter() {
 	s.router.HandleFunc(s.endpoint+"/users/", s.handleUsersByField()).Queries("field", "{field}", "val", "{value}").Methods("GET")
 	s.router.HandleFunc(s.endpoint+"/users", s.handleUsers()).Methods("GET")
 	s.router.HandleFunc(s.endpoint+"/users/{id:[0-9]+}", s.handleUpdateUsersByID()).Methods("PUT")
+	s.router.HandleFunc(s.endpoint+"/users/{id:[0-9]+}", s.handleDeleteUsersByID()).Methods("DELETE")
 
 }
 
@@ -129,6 +130,27 @@ func (s *server) handleUsersByID() http.HandlerFunc {
 		}
 
 		s.respond(w, r, http.StatusOK, u)
+	}
+}
+func (s *server) handleDeleteUsersByID() http.HandlerFunc {
+
+	return func(w http.ResponseWriter, r *http.Request) {
+
+		vars := mux.Vars(r)
+		id, err := strconv.Atoi(vars["id"])
+		if err != nil {
+			s.error(w, r, http.StatusBadRequest, err)
+			return
+		}
+
+		err = s.store.User().DeleteUserByID(id)
+
+		if err != nil {
+			s.error(w, r, http.StatusNotFound, err)
+			return
+		}
+
+		s.respond(w, r, http.StatusOK, nil)
 	}
 }
 

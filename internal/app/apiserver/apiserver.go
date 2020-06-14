@@ -19,6 +19,7 @@ func Start(config *Config) error {
 	pool, err := pgxpool.Connect(context.Background(), config.DatabaseURL)
 	if err != nil {
 		log.Fatalf("Unable to connection to database: %v", err)
+		return err
 	}
 	defer pool.Close()
 	log.Infof("Connected!")
@@ -26,6 +27,7 @@ func Start(config *Config) error {
 	conn, err := pool.Acquire(context.Background())
 	if err != nil {
 		log.Fatalf("Unable to acquire a database connection: %v", err)
+		return err
 	}
 	// migrateDatabase(conn.Conn())
 	MigrateDB(conn.Conn(), config)

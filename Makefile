@@ -9,7 +9,7 @@
 
 .PHONY: build
 build:
-	go build -o bin/http-crud-server -v ./cmd/apiserver
+	go build -o bin/ -v ./cmd/apiserver
 
 .PHONY: test
 test:
@@ -18,7 +18,7 @@ test:
 .PHONY: run
 run:
 	
-	./bin/http-crud-server/apiserver
+	./bin/apiserver
 
 .PHONY: rundb
 rundb:
@@ -39,4 +39,4 @@ rundb:
 
 # обновление: curl -vvv -XPUT -H 'Content-Type: application/json' -d '{"name":"Bob","email":"456@google.com"}' localhost:3220/api/v1/users/3
 
-# удаление: curl -vvv -XDELETE  localhost:3220/api/v1/records/1
+# удаление: curl -vvv -XDELETE  localhost:3220/api/v1/users/1

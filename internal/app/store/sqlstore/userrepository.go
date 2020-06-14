@@ -146,3 +146,26 @@ func (r *UserRepository) UpdateUserByID(id int, u *model.User) (*model.User, err
 
 	return u, nil
 }
+
+// DeleteUserByID ...
+func (r *UserRepository) DeleteUserByID(id int) error {
+
+	pool := r.store.db
+
+	conn, err := pool.Acquire(context.Background())
+	if err != nil {
+		log.Errorf("Unable to acquire a database connection: %v\n", err)
+		return err
+	}
+	defer conn.Release()
+	query := fmt.Sprintf("DELETE FROM test.users WHERE id = $1")
+
+	ct, err := conn.Exec(context.Background(), query,
+		id)
+
+	if ct.RowsAffected() == 0 {
+		return nil
+	}
+
+	return nil
+}
